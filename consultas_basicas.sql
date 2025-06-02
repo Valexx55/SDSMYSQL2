@@ -349,3 +349,19 @@ GROUP BY provincias.nombre
 HAVING num_pacientes >2;
 
 
+-- CONSULTAR LA ALEGIA MÁS COMÚN
+/*
+1 datos - select nombre alergia, número de pacientes
+2 TABLAS - paciente alergia, alergia
+3 - gruop by - nombre alergia
+4 - ordenación
+5 - filtrado
+*/
+
+
+SELECT alergias.nombre, COUNT(*) AS num_pacientes
+FROM paciente_alergia
+JOIN alergias ON paciente_alergia.alergia_id = alergias.alergia_id
+GROUP BY alergias.nombre
+ORDER BY num_pacientes DESC
+LIMIT 1; -- TODO pendiente sacar todas las que están igualadas

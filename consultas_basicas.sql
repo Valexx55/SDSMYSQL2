@@ -133,3 +133,150 @@ WHERE
         WHERE
             nombre = 'Badalona');
 
+
+-- SELECIONAR LOS NOMBRES DE LOS PACIENTES Y SU ID DE ALERGIA ( EN CASO QUE TENGAN ALGUNA )
+SELECT 
+    p.nombre, pa.alergia_id
+FROM
+    pacientes p -- TABLA A
+        INNER JOIN
+    paciente_alergia pa ON p.paciente_id = pa.paciente_id; -- TABLA B
+
+SELECT 
+    p.nombre, pa.alergia_id
+FROM
+    pacientes p
+		JOIN
+    paciente_alergia pa ON p.paciente_id = pa.paciente_id;
+    
+-- -- SELECIONAR LOS NOMBRES DE LOS PACIENTES Y SU NOMBRE DE ALERGIA ( EN CASO QUE TENGAN ALGUNA )
+
+
+SELECT 
+    p.nombre, pa.alergia_id, a.nombre
+FROM
+    pacientes p
+		JOIN
+    paciente_alergia pa ON p.paciente_id = pa.paciente_id
+		JOIN 
+	alergias a ON a.alergia_id = pa.alergia_id;
+
+-- SELECCIONAR EL NOMBRE DE LOS PACIENTES QUE NO TIENEN NINGUNA ALERGIA:
+-- HACEDLO CON LEFT JOIN Y SIN JOIN (CONSULTA ANIDADA)
+
+SELECT 
+    p.nombre -- , pa.alergia_id
+FROM
+    pacientes p -- TABLA A
+        LEFT JOIN
+    paciente_alergia pa ON p.paciente_id = pa.paciente_id -- TABLA B
+    WHERE
+		pa.alergia_id IS NULL;
+        
+SELECT 
+    nombre
+FROM
+    pacientes
+WHERE
+    paciente_id NOT IN (SELECT 
+            paciente_id
+        FROM
+            paciente_alergia);
+
+
+SELECT 
+    p.nombre
+FROM
+    paciente_alergia pa
+        RIGHT JOIN
+    pacientes p ON pa.paciente_id = p.paciente_id
+WHERE
+    alergia_id IS NULL;
+    
+  /**
+  DISTINCT - ELIMINAR DUPLICADOS
+  */
+  
+SELECT DISTINCT
+    especialidad
+FROM
+    doctores;
+
+-- DISTINTCT + COUNT 
+
+SELECT COUNT(DISTINCT
+    especialidad) AS total_especialidades
+FROM
+    doctores;
+    
+-- sacad un listado de las polbaciones donde viven los pacientes (sin repetirse)
+
+-- Error Code: 1052. Column 'nombre' in field list is ambiguous
+
+SELECT DISTINCT
+    po.nombre
+FROM
+    poblaciones po
+        JOIN
+    pacientes pa ON pa.poblacion_id = po.poblacion_id;
+
+-- SELECCIONAMOS LAS ALERGIAS QUE ESTÁN ASOCIADAS A ALGÚN PACIENTE
+
+SELECT DISTINCT
+    a.nombre
+FROM
+    alergias a
+        JOIN
+    paciente_alergia pa ON pa.alergia_id = a.alergia_id;
+    
+/** FUNCIONES DE AGREAGACIÓN ( COUNT, SUM, AVG, MAX, MIN, ETC.) */
+
+-- CUÁNTAS PERSONAS NO TIENEN EL ALTA (PACIENTES QUE EN ADMISIONES, TIENE SU FECHA DE ALTA A NULL)
+
+SELECT -- forma preferida
+    COUNT(*) AS pacientes_ingresados
+FROM
+    admisiones
+WHERE
+    fecha_alta IS NULL;
+    
+SELECT 
+    COUNT(1) AS pacientes_ingresados
+FROM
+    admisiones
+WHERE
+    fecha_alta IS NULL;
+
+-- CUÁNTAS PERSONAS TIENEN EL ALTA (PACIENTES QUE EN ADMISIONES, TIENE SU FECHA De dalta != null)
+
+SELECT  -- forma preferida
+    COUNT(fecha_alta) AS pacientes_de_alta -- COUNT (NOMBRE_DEL_CAMPO) --> No contabiliza al registro si ese valor es nulo en la fila
+FROM
+    admisiones;
+    
+SELECT 
+    COUNT(*) AS pacientes_de_alta -- COUNT (NOMBRE_DEL_CAMPO) --> No contabiliza al registro si ese valor es nulo en la fila
+FROM
+    admisiones WHERE fecha_alta IS NOT NULL;
+
+-- OBTENER LA MEDIA DEL PESO DE TODOS LOS PACIENTES. REDONDEARLA A UN DECIMAL
+
+SELECT 
+    ROUND(AVG(peso), 1) AS peso_medio
+FROM
+    pacientes;
+
+-- OBTENER LA MEDIA DE LA ALTURA DE TODOS LOS PACIENTES (expresada en CM) . REDONDEADA A UN DECIMAL
+
+SELECT 
+    ROUND(AVG(altura)*100, 1) AS altura_media_cm
+FROM
+    pacientes;
+
+-- obtener la diferencia mayor entre el peso máximo y mínimo de los pacientes
+
+SELECT 
+    MAX(peso)-MIN(peso) AS diferencia_peso
+FROM
+    pacientes;
+

@@ -280,3 +280,72 @@ SELECT
 FROM
     pacientes;
 
+
+-- MOSTRAR EL NÚMERO TOTAL DE PACIENTES , EL NÚMERO TOTAL DE HOMBRES Y EL NÚMERO TOTAL DE MUJERES (3 COLUMNAS) 
+-- count(*)
+SELECT COUNT(*) AS total_pacientes, 
+	SUM(CASE WHEN genero='M' THEN 1 ELSE 0 END) AS total_hombres,
+    SUM(CASE WHEN genero='F' THEN 1 ELSE 0 END) AS total_muejres
+ FROM pacientes;
+ 
+ -- DADO UN PACIENTE, CONSULTAD CUÁNTAS ADMISIONES HA TENIDO. DEPUÉS, REFINAMOS LA CONUSLTA Y SACAMOS CUÁNTAS EN EL ÚLTIMO MES.
+ 
+SET @paciente := 2;
+SELECT 
+    COUNT(*) AS ingresos_ultimo_mes
+FROM
+    admisiones
+WHERE
+    admisiones.paciente_id = @paciente
+AND fecha_admision >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH); -- Y SU FECHA DE ADMISIÓN SEA ANTERIOR A UN MES DESDE LA  CURDATE()
+ 
+ 
+ -- LISTADO DE ALERGIAS AGRUPADO POR EL NOMBRE DE LA ALERGIA Y EL NÚMERO DE PACIENTES QUE LA TIENEN
+
+SELECT alergias.nombre, COUNT(*) AS num_pacientes -- SI COMBINO UNA F() DE AGREGACIÓN CON OTRO DATO --> DEBO USAR GROUP BY
+FROM paciente_alergia
+JOIN alergias ON alergias.alergia_id = paciente_alergia.alergia_id
+GROUP BY alergias.nombre;
+
+-- OJO AL FALLO SI NO USO GROUP BY Error Code: 1140. 
+-- In aggregated query without GROUP BY, expression #1 of SELECT list contains nonaggregated column 'hospital_profe.alergias.nombre'; this is incompatible with sql_mode=only_full_group_by
+
+-- VISUALIZAMOS EL MODO EN QUE ESTÁ TRABAJANDO LA BASE DE DATOS
+-- SELECT @@SESSION.sql_mode;
+SELECT @@sql_mode;
+
+SET SESSION sql_mode = REPLACE(@@SESSION.sql_mode, 'ONLY_FULL_GROUP_BY,', '');
+
+
+-- EL NÚMERO DE ADMISIONES POR PROVINCIA odernado por el número de admisiones de mayor a menor y por el nombre de provincias alfabéticamente
+/**
+1- QUÉ DATOS TENGO QUE OBTENER (CALCULADOS O NO), -select 
+2 - DE QUÉ TABLA(S) - from / join
+3 - CÓMO LOS AGRUPO
+4 - ORDENAMOS LOS DATOS
+**/
+SELECT provincias.nombre , COUNT(admisiones.admisiones_id) AS num_admisiones
+FROM admisiones
+JOIN pacientes ON admisiones.paciente_id = pacientes.paciente_id
+JOIN poblaciones ON pacientes.poblacion_id = poblaciones.poblacion_id
+JOIN provincias ON provincias.provincia_id = poblaciones.provincia_id
+GROUP BY provincias.nombre
+ORDER BY num_admisiones DESC, provincias.nombre ASC;
+
+-- PROVINCIAS CON MÁS DE 2 PACIENTES
+/**
+1- QUÉ DATOS TENGO QUE OBTENER (CALCULADOS O NO), -select 
+2 - DE QUÉ TABLA(S) - from / join
+3 - CÓMO LOS AGRUPO
+4 - ORDENAMOS LOS DATOS
+5 - FILTRO CON HAVING / LIMIT
+**/
+
+SELECT provincias.nombre, COUNT(*) as num_pacientes
+FROM provincias 
+JOIN poblaciones ON poblaciones.provincia_id = provincias.provincia_id
+JOIN pacientes ON poblaciones.poblacion_id = pacientes.poblacion_id
+GROUP BY provincias.nombre
+HAVING num_pacientes >2;
+
+

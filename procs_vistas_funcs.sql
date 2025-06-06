@@ -14,7 +14,6 @@ JOIN paciente_alergia pa ON p.paciente_id = pa.paciente_id
 JOIN alergias a ON pa.alergia_id = a.alergia_id;
 
 -- hacemos una vista que me muestre todos los datos de los pacientes, omitiendo EL GÉNERO Y LA FECHA DE NACIMIENTO (vista con Datos actualizables por UPDATE)
--- TODO probar a hacer un UPDATE sobre la vista
 CREATE VIEW vista_pacientes_simplificada AS
 SELECT
 	paciente_id,
@@ -24,6 +23,11 @@ SELECT
     altura,
     poblacion_id
 FROM pacientes;
+
+
+UPDATE vista_pacientes_simplificada
+SET peso = 200
+WHERE paciente_id = 1;
 
 -- CREAMOS UNA VISTA, PARA QUE ME DÉ EL DETALLE DE CUÁNDO HA SIDO ADMITIDO UN PACIENTE, SU NOMBRE, QUÉ DOCTOR LE HA ATENDIDO Y EL DIAGNOSITCO
 CREATE VIEW vista_admisiones_detalle AS
@@ -38,6 +42,11 @@ FROM
 	admisiones a
 JOIN pacientes p ON a.paciente_id = p.paciente_id
 LEFT JOIN doctores d ON	d.doctor_id = a.doctor_id;
+
+SET SQL_SAFE_UPDATES = 0; 
+UPDATE vista_admisiones_detalle
+SET diagnistico = 'Indeterminado';
+SET SQL_SAFE_UPDATES = 1;
     
 /**
 PROCEDIMIENTOS / PROCEDURES
@@ -120,16 +129,13 @@ FROM
     
 -- AÑADIR UNA FUNCIÓN NUEVA, PARA PODER OBTENER EL LISTADO DE PACIENTES CON SU PESO EN FORMATO KG,D
 
-
--- TODO revisar mañana
-
 DELIMITER $$
 
-CREATE FUNCTION convertir_peso (peso DECIMAL) -- CABECERA
-RETURNS VARCHAR(4) -- TIPO DEVUELTO
+CREATE FUNCTION convertir_peso (peso DECIMAL(5,1)) -- CABECERA
+RETURNS VARCHAR(5) -- TIPO DEVUELTO
 DETERMINISTIC
 BEGIN
-      RETURN REPLACE(FORMAT(peso, 1), '.', ',');
+      RETURN REPLACE(CAST(peso AS CHAR), '.', ',');
 END $$
 
 DELIMITER ;
@@ -154,4 +160,4 @@ END $$
 DELIMITER ;
 
 -- LLAMADA
-SELECT nombre_completo(paciente_id) AS nombre_completo FROM pacientes; 
+SELECT nombre_completo(paciente_id) AS nombre_completo, convertir_peso(peso) AS peso_formateado_coma FROM pacientes; 
